@@ -156,6 +156,14 @@ typedef struct eeprom_data {
   uint8_t ui8_torque_sensor_adc_threshold;
   uint8_t ui8_coast_brake_enable;
 
+  uint32_t ui32_trip_a_distance_x1000;
+  uint16_t ui16_trip_a_time;
+  uint16_t ui16_trip_a_max_speed_x10;
+  
+  uint32_t ui32_trip_b_distance_x1000;
+  uint16_t ui16_trip_b_time;
+  uint16_t ui16_trip_b_max_speed_x10;
+
 // FIXME align to 32 bit value by end of structure and pack other fields
 } eeprom_data_t;
 
@@ -362,6 +370,10 @@ void eeprom_init_defaults(void);
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_WEIGHT_8             102
 #define DEFAULT_TORQUE_SENSOR_CALIBRATION_RIGHT_ADC_8                300
 #endif
+
+#define DEFAULT_VALUE_TRIP_DISTANCE                                  0
+#define DEFAULT_VALUE_TRIP_TIME                                      0
+#define DEFAULT_VALUE_TRIP_MAX_SPEED                                 0
 
 // *************************************************************************** //
 

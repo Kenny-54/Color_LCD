@@ -278,6 +278,14 @@ const eeprom_data_t m_eeprom_data_defaults = {
   .ui8_torque_sensor_filter = DEFAULT_TORQUE_SENSOR_FILTER,
   .ui8_torque_sensor_adc_threshold = DEFAULT_TORQUE_SENSOR_ADC_THRESHOLD,
   .ui8_coast_brake_enable = DEFAULT_COAST_BRAKE_ENABLE,
+
+  .ui32_trip_a_distance_x1000 = DEFAULT_VALUE_TRIP_DISTANCE,
+  .ui16_trip_a_time = DEFAULT_VALUE_TRIP_TIME,
+  .ui16_trip_a_max_speed_x10 = DEFAULT_VALUE_TRIP_MAX_SPEED,
+
+  .ui32_trip_b_distance_x1000 = DEFAULT_VALUE_TRIP_DISTANCE,
+  .ui16_trip_b_time = DEFAULT_VALUE_TRIP_TIME,
+  .ui16_trip_b_max_speed_x10 = DEFAULT_VALUE_TRIP_MAX_SPEED,
 };
 
 void eeprom_init() {
@@ -577,6 +585,22 @@ void eeprom_init_variables(void) {
       m_eeprom_data.ui8_torque_sensor_adc_threshold;
   ui_vars->ui8_coast_brake_enable =
       m_eeprom_data.ui8_coast_brake_enable;
+
+  // trip A values should reside on RT vars
+  rt_vars->ui32_trip_a_distance_x1000 =
+      m_eeprom_data.ui32_trip_a_distance_x1000;
+  rt_vars->ui32_trip_b_distance_x1000 =
+      m_eeprom_data.ui32_trip_b_distance_x1000;
+  rt_vars->ui16_trip_a_time =
+      m_eeprom_data.ui16_trip_a_time;
+
+  // trip B values should reside on RT vars
+  rt_vars->ui16_trip_b_time =
+      m_eeprom_data.ui16_trip_b_time;
+  rt_vars->ui16_trip_a_max_speed_x10 =
+      m_eeprom_data.ui16_trip_a_max_speed_x10;
+  rt_vars->ui16_trip_b_max_speed_x10 =
+      m_eeprom_data.ui16_trip_b_max_speed_x10;
 }
 
 void eeprom_write_variables(void) {
@@ -765,6 +789,21 @@ void eeprom_write_variables(void) {
       ui_vars->ui8_torque_sensor_adc_threshold;
   m_eeprom_data.ui8_coast_brake_enable =
       ui_vars->ui8_coast_brake_enable;
+
+  m_eeprom_data.ui32_trip_a_distance_x1000 =
+      ui_vars->ui32_trip_a_distance_x1000;
+  m_eeprom_data.ui16_trip_a_time =
+      ui_vars->ui16_trip_a_time;
+  m_eeprom_data.ui16_trip_a_max_speed_x10 =
+      ui_vars->ui16_trip_a_max_speed_x10;
+
+  m_eeprom_data.ui32_trip_b_distance_x1000 =
+      ui_vars->ui32_trip_b_distance_x1000;
+  m_eeprom_data.ui16_trip_b_time =
+      ui_vars->ui16_trip_b_time;
+
+  m_eeprom_data.ui16_trip_b_max_speed_x10 =
+      ui_vars->ui16_trip_b_max_speed_x10;
 
 	flash_write_words(&m_eeprom_data, sizeof(m_eeprom_data) / sizeof(uint32_t));
 }
