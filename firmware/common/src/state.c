@@ -530,10 +530,10 @@ static void rt_calc_trips(void) {
 
   }
 
-  // calculate trip A and B average speeds
+  // calculate trip A and B average speeds (every 3s)
   if (ui8_calc_avg_speed_flag == 1 && ++ui8_3s_timer_counter >= 30) {
-    rt_vars.ui16_trip_a_avg_speed_x10 = (rt_vars.ui32_trip_a_distance_x1000 * 36) / rt_vars.ui16_trip_a_time;
-    rt_vars.ui16_trip_b_avg_speed_x10 = (rt_vars.ui32_trip_b_distance_x1000 * 36) / rt_vars.ui16_trip_b_time;
+    rt_vars.ui16_trip_a_avg_speed_x10 = (rt_vars.ui32_trip_a_distance_x1000 * 36) / rt_vars.ui32_trip_a_time;
+    rt_vars.ui16_trip_b_avg_speed_x10 = (rt_vars.ui32_trip_b_distance_x1000 * 36) / rt_vars.ui32_trip_b_time;
     
     // reset 3s timer counter and flag
     ui8_calc_avg_speed_flag = 0;    
@@ -543,11 +543,37 @@ static void rt_calc_trips(void) {
   // at 1s rate : update all trip time variables if wheel is turning
   if (++ui8_1s_timer_counter >= 10) {
     if (rt_vars.ui16_wheel_speed_x10 > 0) {
-      rt_vars.ui16_trip_a_time += 1;
-      rt_vars.ui16_trip_b_time += 1;
+      rt_vars.ui32_trip_a_time += 1;
+      rt_vars.ui32_trip_b_time += 1;
+      
+#ifndef SW102
+      rt_vars.ui32_trip_a_last_update_time = RTC_GetCounter();
+      rt_vars.ui32_trip_b_last_update_time = RTC_GetCounter();
+#endif
+
     }
     ui8_1s_timer_counter = 0;
   }
+
+#ifndef SW102
+  uint32_t current_time = RTC_GetCounter();
+
+  if (ui_vars.ui8_trip_a_auto_reset && (current_time - rt_vars.ui32_trip_a_last_update_time >= ui_vars.ui16_trip_a_auto_reset_hours * 3600)) {
+    rt_vars.ui32_trip_a_last_update_time = current_time;
+    rt_vars.ui32_trip_a_distance_x1000 = 0;
+    rt_vars.ui32_trip_a_time = 0;
+    rt_vars.ui16_trip_a_avg_speed_x10 = 0;
+    rt_vars.ui16_trip_a_max_speed_x10 = 0;
+  }
+
+  if (ui_vars.ui8_trip_b_auto_reset && (current_time - rt_vars.ui32_trip_b_last_update_time >= ui_vars.ui16_trip_b_auto_reset_hours * 3600)) {
+    rt_vars.ui32_trip_b_last_update_time = current_time;
+    rt_vars.ui32_trip_b_distance_x1000 = 0;
+    rt_vars.ui32_trip_b_time = 0;
+    rt_vars.ui16_trip_b_avg_speed_x10 = 0;
+    rt_vars.ui16_trip_b_max_speed_x10 = 0;
+  }
+#endif
 
 }
 
@@ -687,16 +713,24 @@ void copy_rt_to_ui_vars(void) {
 	ui_vars.ui32_wh_x10 = rt_vars.ui32_wh_x10;
 	ui_vars.ui8_braking = rt_vars.ui8_braking;
 	ui_vars.ui8_foc_angle = (((uint16_t) rt_vars.ui8_foc_angle) * 14) / 10; // each units is equal to 1.4 degrees ((360 degrees / 256) = 1.4)
+
+#ifndef SW102
+  ui_vars.ui32_trip_a_last_update_time = rt_vars.ui32_trip_a_last_update_time;
+  ui_vars.ui32_trip_b_last_update_time = rt_vars.ui32_trip_b_last_update_time;
+#endif
+
 	ui_vars.ui32_trip_a_distance_x1000 = rt_vars.ui32_trip_a_distance_x1000;
-  ui_vars.ui32_trip_a_distance_x100 = rt_vars.ui32_trip_a_distance_x1000 / 10;
-  ui_vars.ui16_trip_a_time = rt_vars.ui16_trip_a_time;
+  ui_vars.ui32_trip_a_distance_x100 = rt_vars.ui32_trip_a_distance_x1000 / 10;  
+  ui_vars.ui32_trip_a_time = rt_vars.ui32_trip_a_time;
   ui_vars.ui16_trip_a_avg_speed_x10 = rt_vars.ui16_trip_a_avg_speed_x10;
   ui_vars.ui16_trip_a_max_speed_x10 = rt_vars.ui16_trip_a_max_speed_x10;
+
   ui_vars.ui32_trip_b_distance_x1000 = rt_vars.ui32_trip_b_distance_x1000;
   ui_vars.ui32_trip_b_distance_x100 = rt_vars.ui32_trip_b_distance_x1000 / 10;
-  ui_vars.ui16_trip_b_time = rt_vars.ui16_trip_b_time;
+  ui_vars.ui32_trip_b_time = rt_vars.ui32_trip_b_time;
   ui_vars.ui16_trip_b_avg_speed_x10 = rt_vars.ui16_trip_b_avg_speed_x10;
   ui_vars.ui16_trip_b_max_speed_x10 = rt_vars.ui16_trip_b_max_speed_x10;
+
 	ui_vars.ui32_odometer_x10 = rt_vars.ui32_odometer_x10;
 	ui_vars.battery_energy_km_value_x100 = rt_vars.battery_energy_h_km.ui32_value_x100;
   ui_vars.ui16_adc_battery_current = rt_vars.ui16_adc_battery_current;

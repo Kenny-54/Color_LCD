@@ -62,6 +62,7 @@ void wheel_speed(void);
 void showNextScreen();
 static bool renderWarning(FieldLayout *layout);
 void DisplayResetToDefaults(void);
+void TripMemoriesReset(void);
 void DisplayResetBluetoothPeers(void);
 void onSetConfigurationBatteryTotalWh(uint32_t v);
 void batteryTotalWh(void);
@@ -734,6 +735,7 @@ void screen_clock(void) {
     clock_time();
 #endif
     DisplayResetToDefaults();
+    TripMemoriesReset();
     DisplayResetBluetoothPeers();
     batteryTotalWh();
     batteryCurrent();
@@ -966,8 +968,8 @@ void up_time(void) {
 }
 
 void trip_time(void){
-  updateTripTime(ui_vars.ui16_trip_a_time, &tripATimeField);
-  updateTripTime(ui_vars.ui16_trip_b_time, &tripBTimeField);
+  updateTripTime(ui_vars.ui32_trip_a_time, &tripATimeField);
+  updateTripTime(ui_vars.ui32_trip_b_time, &tripBTimeField);
 }
 
 void updateTripTime(uint32_t tripTime, Field *field) {
@@ -1275,6 +1277,32 @@ void DisplayResetToDefaults(void) {
   if (ui8_g_configuration_display_reset_to_defaults) {
     ui8_g_configuration_display_reset_to_defaults = 0;
     eeprom_init_defaults();
+  }
+}
+
+void TripMemoriesReset(void) {
+  if (ui8_g_configuration_trip_a_reset) {
+    ui8_g_configuration_trip_a_reset = 0;
+
+    uint32_t current_time = RTC_GetCounter();
+
+    rt_vars.ui32_trip_a_last_update_time = current_time;
+    rt_vars.ui32_trip_a_distance_x1000 = 0;
+    rt_vars.ui32_trip_a_time = 0;
+    rt_vars.ui16_trip_a_avg_speed_x10 = 0;
+    rt_vars.ui16_trip_a_max_speed_x10 = 0;
+  }
+
+  if (ui8_g_configuration_trip_b_reset) {
+    ui8_g_configuration_trip_b_reset = 0;
+
+    uint32_t current_time = RTC_GetCounter();
+
+    rt_vars.ui32_trip_b_last_update_time = current_time;
+    rt_vars.ui32_trip_b_distance_x1000 = 0;
+    rt_vars.ui32_trip_b_time = 0;
+    rt_vars.ui16_trip_b_avg_speed_x10 = 0;
+    rt_vars.ui16_trip_b_max_speed_x10 = 0;
   }
 }
 
